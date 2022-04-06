@@ -7,7 +7,7 @@ Tool to get a list of all words in the Merriam Webster dictionary or special sub
 
 1. Clone the repository and enter the downloaded directory
 ```shell
-git clone https://github.com/kevihiiin/Webster-Dictionary-Crawler.git && Webster-Dictionary-Crawler
+git clone https://github.com/kevihiiin/Webster-Dictionary-Crawler.git && cd Webster-Dictionary-Crawler
 ```
 2. Install the required python packagse
 ```shell
