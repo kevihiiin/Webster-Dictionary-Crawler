@@ -1,4 +1,5 @@
 #!/bin/env python3
+import argparse
 import logging
 import re
 import requests
@@ -14,13 +15,6 @@ from tqdm import tqdm
 # ---------------------------------
 # Base URL to scrape
 base_url = "https://www.merriam-webster.com/browse/{dictionary}/{letter}/{page}"
-
-# Folder/File to write results to
-output_folder_path = Path("dictionary1")
-output_file_path = output_folder_path.joinpath("Word_Dictionary.tsv")
-
-# Min. Delay inbetween requests in seconds
-min_delay_s = 1
 
 # ---------------------------------
 # Get a list of letters to look for
@@ -91,9 +85,6 @@ def parse_words(page_content):
     return word_list
 
 
-# ---------------------------------
-# Go through a sub sites (one letter) and retrieve the words
-# ---------------------------------
 def crawl_by_letter(dictionary, letter_tupel, prog_bar=None, min_delay=1):
     word_list = []
     letter, max_page = letter_tupel
@@ -132,12 +123,14 @@ def crawl_by_dictionary(dictionary, letter_list, output_file_path, min_delay=1):
     output_file_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Determine the number of pages per letter to scrape
+    logging.info("Determining the number of pages per letter to scrape")
     letter_dict = {}
     for letter in letter_list:
         page_soup = fetch_parse_website(dictionary, letter)
         letter_dict[letter] = parse_page_numbers(page_soup)
 
     # Set up the tqdm progress bar and open output file
+    logging.info("Start scraping by letter")
     with tqdm(total=sum(letter_dict.values())) as prog_bar, open(output_file_path, "w") as output_file:
         # Go through all the letters
         for letter_tupel in letter_dict.items():
@@ -149,7 +142,72 @@ def crawl_by_dictionary(dictionary, letter_list, output_file_path, min_delay=1):
     return word_list
 
 
+# ---------------------------------
+# Configure the argument parser
+# ---------------------------------
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    result_list = crawl_by_dictionary("medical", letter_list, output_file_path)
-    print(result_list)
+    # --- Set up the argparser
+    arg_parser = argparse.ArgumentParser(description="Download all words from the Merriam-Webster dictionary",
+                                         allow_abbrev=False)
+    # - Specify the dictionary
+    arg_parser.add_argument("-d",
+                            "--dictionary",
+                            # default="medical",
+                            metavar="dictionary_name",
+                            choices=['medical', 'dictionary'],
+                            required=True,
+                            help="Dictionary to download, `medical` or the standard `dictionary`")
+
+    # - Specify the output file
+    arg_parser.add_argument("-o",
+                            "--output",
+                            metavar="output_file",
+                            type=str,
+                            help="Path to the output file")
+
+    # - Specify the wait time between requrests
+    arg_parser.add_argument("-w",
+                            "--wait",
+                            metavar="delay_s",
+                            default=1,
+                            type=int,
+                            help="Delay added between requests in seconds")
+
+    # - Specify the log level
+    arg_parser.add_argument("-v",
+                            "--verbosity",
+                            default="INFO",
+                            metavar="verbosity",
+                            choices=['INFO', 'WARN', 'DEBUG'],
+                            help="Verbosity of the logger")
+
+    # - Parse the args
+    args = arg_parser.parse_args()
+
+    # - Set output folder
+    if not args.output:
+        args.output = f"dictionary/{args.dictionary}_word_list.tsv"
+    output_file_path = Path(args.output)
+    output_file_path.parent.mkdir(exist_ok=True)
+
+    # - Set the logging level
+    # Use Python 3.10 and switch statements next time...
+    logging_level = None
+    if args.verbosity == "DEBUG":
+        logging_level = logging.DEBUG
+    elif args.verbosity == "WARN":
+        logging_level = logging.WARNING
+    else:
+        logging_level = logging.INFO
+
+    logging.basicConfig(level=logging_level)
+
+    # --- Print stats
+    logging.info(f"Downloading the `{args.dictionary}` dictionary to {output_file_path} "
+                 f"with {args.wait}s delay between requests.")
+
+    # --- Run the crawler
+    result_list = crawl_by_dictionary(dictionary=args.dictionary, letter_list=letter_list,
+                                      output_file_path=output_file_path, min_delay=args.wait)
+    logging.info(f"Crawl completed.")
+    # print(result_list)
