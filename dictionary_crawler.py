@@ -71,14 +71,12 @@ def parse_words(page_content):
     :return: [str]: List of words
     """
     word_list = []
-    entry_list = page_content.find_all("div", class_="entries")
+    entry_list = page_content.find_all("a", attrs={'href': re.compile(r"^(/dictionary/|/medical/)")})
     if not entry_list:
         logging.warning(f"Could not find any entries (words) for this letter on this page")
         return word_list
     # Get all the words from the entries
-    for entry in entry_list:
-        new_words = [link.text for link in entry.find_all("a")]
-        word_list += new_words
+    word_list = [entry.text for entry in entry_list]
 
     logging.debug(f"Added {len(word_list)} new words")
 

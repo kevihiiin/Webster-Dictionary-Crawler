@@ -18,7 +18,7 @@ pip -r requirements.txt
 By default the script grabs all words starting with [A-Za-z0-9] from the specified dictionary and
 writes the output word list to `dictionary/{dictionary}_word_list.tsv`.
 
-The user has to specify which dictionary to download from, either `medical` or `dictionary` for the standard one.
+The user has to specify which dictionary to download from, either [`medical`](https://www.merriam-webster.com/browse/medical/) or [`dictionary`](https://www.merriam-webster.com/browse/dictionary/) for the standard one.
 
 Example 1:
 - Download the `medical` dictionary (save to default location)
