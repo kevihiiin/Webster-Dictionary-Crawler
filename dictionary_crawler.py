@@ -56,7 +56,7 @@ def parse_page_numbers(page_content):
         # Get the page counter element text (style "page 1 of 10")
         page_count_text = page_content.find("span", class_="counters").text
         # Extract the last number
-        last_page_num = int(re.search(r'.* of ([1-9]*)', page_count_text).group(1))
+        last_page_num = int(re.search(r'.* of ([0-9]*)', page_count_text).group(1))
     # TypeError: if counter_list is empty | AttributeError: if there was no match or page_content is None
     except TypeError or AttributeError:
         logging.warning(f"Could not determine the maximum number of pages. Will stop after page 1.")
